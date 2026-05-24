@@ -1189,7 +1189,7 @@
         <div class="steps" aria-label="Optimization loop summary">
           <div class="step">
             <strong>Rollout</strong>
-            <p>The student executes tasks with the current skill and records scored trajectories.</p>
+            <p>The target model executes tasks with the current skill and records scored trajectories.</p>
           </div>
           <div class="step">
             <strong>Reflect</strong>
@@ -1251,7 +1251,7 @@
       <div class="section-header">
         <div class="section-eyebrow">03 / Main Results</div>
         <div>
-          <h2>SkillOpt improves GPT and Qwen students.</h2>
+          <h2>SkillOpt improves GPT and Qwen target models.</h2>
           <p class="section-lede">
             The table reports main-result gains across target models and
             execution harnesses, comparing no-skill execution with the final
@@ -1264,7 +1264,7 @@
         <table aria-label="Main result gain heatmap by model, harness, and benchmark">
           <thead>
             <tr>
-              <th>Student model</th>
+              <th>Target model</th>
               <th>Harness</th>
               <th class="num">SearchQA</th>
               <th class="num">Sheet</th>
@@ -1557,10 +1557,10 @@
         <div>
           <h2>A typical run turns failures into concrete operating rules.</h2>
           <p class="section-lede">
-            This ALFWorld run uses GPT-5.5 as the teacher and GPT-5.4-mini as the
-            frozen student. The plot tracks train rollout and held-out selection
-            scores; hover or focus a point to inspect the skill edit proposed at
-            that stage.
+            This ALFWorld run uses GPT-5.4-mini as the frozen target model and
+            GPT-5.5 as the optimizer model. The plot tracks train rollout and
+            held-out selection scores; hover or focus a point to inspect the
+            skill edit proposed at that stage.
           </p>
         </div>
       </div>
@@ -1665,7 +1665,7 @@
       <div class="evolution-footnotes">
         <div class="evolution-note">
           <b>Run setup</b>
-          Student: GPT-5.4-mini. Teacher: GPT-5.5. The skill starts from a compact ALFWorld instruction file and is edited in text space.
+          Target model: GPT-5.4-mini. Optimizer model: GPT-5.5. The skill starts from a compact ALFWorld instruction file and is edited in text space.
         </div>
         <div class="evolution-note">
           <b>Selection rule</b>
@@ -1703,9 +1703,9 @@
           <p>Codex-trained SpreadsheetBench skill transferred into Claude Code.</p>
         </article>
         <article class="transfer">
-          <span>Self-teaching</span>
+          <span>Self-optimizer</span>
           <span class="big">+10.4</span>
-          <p>GPT-5.4-nano self-teacher improved SpreadsheetBench over baseline.</p>
+          <p>GPT-5.4-nano used as its own optimizer improved SpreadsheetBench over baseline.</p>
         </article>
         <article class="transfer">
           <span>Deployment</span>
@@ -1737,7 +1737,7 @@
         summary: "The starting skill solves many direct cases, but failures cluster around repeated search, loose object matching, and unfinished pick-two progress.",
         edits: [
           "Generic search and delivery rules, with no persistent numbered-location memory.",
-          "Selection baseline before any teacher edit is applied.",
+          "Selection baseline before any optimizer edit is applied.",
           "The run uses this score as the acceptance floor for future candidates."
         ]
       },
