@@ -939,6 +939,24 @@
       white-space: nowrap;
     }
 
+    .model-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
+    .model-icon {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 auto;
+      object-fit: contain;
+      border-radius: 5px;
+      background: #ffffff;
+      box-shadow: 0 0 0 1px rgba(226, 232, 240, 0.9);
+    }
+
     .heat {
       color: var(--ink);
       background:
@@ -1805,7 +1823,7 @@
           </thead>
           <tbody>
             <tr>
-              <td>GPT-5.5</td>
+              <td><span class="model-cell"><img class="model-icon" src="skillopt-assets/openai.png" alt="OpenAI logo">GPT-5.5</span></td>
               <td>Direct chat</td>
               <td class="num heat" style="--heat: 19;">+9.6</td>
               <td class="num heat" style="--heat: 77;">+38.9</td>
@@ -1816,7 +1834,7 @@
               <td class="num heat-avg">+23.5</td>
             </tr>
             <tr>
-              <td>GPT-5.4</td>
+              <td><span class="model-cell"><img class="model-icon" src="skillopt-assets/openai.png" alt="OpenAI logo">GPT-5.4</span></td>
               <td>Direct chat</td>
               <td class="num heat" style="--heat: 12;">+6.2</td>
               <td class="num heat" style="--heat: 42;">+21.1</td>
@@ -1827,7 +1845,7 @@
               <td class="num heat-avg">+12.8</td>
             </tr>
             <tr>
-              <td>GPT-5.4-mini</td>
+              <td><span class="model-cell"><img class="model-icon" src="skillopt-assets/openai.png" alt="OpenAI logo">GPT-5.4-mini</span></td>
               <td>Direct chat</td>
               <td class="num heat" style="--heat: 8;">+4.3</td>
               <td class="num heat" style="--heat: 22;">+11.4</td>
@@ -1838,7 +1856,7 @@
               <td class="num heat-avg">+12.7</td>
             </tr>
             <tr>
-              <td>GPT-5.4-nano</td>
+              <td><span class="model-cell"><img class="model-icon" src="skillopt-assets/openai.png" alt="OpenAI logo">GPT-5.4-nano</span></td>
               <td>Direct chat</td>
               <td class="num heat" style="--heat: 37;">+19.0</td>
               <td class="num heat" style="--heat: 16;">+8.2</td>
@@ -1849,7 +1867,7 @@
               <td class="num heat-avg">+24.9</td>
             </tr>
             <tr>
-              <td>GPT-5.2</td>
+              <td><span class="model-cell"><img class="model-icon" src="skillopt-assets/openai.png" alt="OpenAI logo">GPT-5.2</span></td>
               <td>Direct chat</td>
               <td class="num heat" style="--heat: 22;">+11.2</td>
               <td class="num heat" style="--heat: 37;">+18.9</td>
@@ -1860,7 +1878,7 @@
               <td class="num heat-avg">+16.6</td>
             </tr>
             <tr>
-              <td>Qwen3.5-4B</td>
+              <td><span class="model-cell"><img class="model-icon" src="skillopt-assets/qwen-color.png" alt="Qwen logo">Qwen3.5-4B</span></td>
               <td>Direct chat</td>
               <td class="num heat" style="--heat: 6;">+3.1</td>
               <td class="num heat" style="--heat: 29;">+14.6</td>
@@ -1871,7 +1889,7 @@
               <td class="num heat-avg">+19.2</td>
             </tr>
             <tr>
-              <td>Qwen3.6-35B-A3B</td>
+              <td><span class="model-cell"><img class="model-icon" src="skillopt-assets/qwen-color.png" alt="Qwen logo">Qwen3.6-35B-A3B</span></td>
               <td>Direct chat</td>
               <td class="num heat" style="--heat: 15;">+7.6</td>
               <td class="num heat" style="--heat: 18;">+9.3</td>
@@ -1882,7 +1900,7 @@
               <td class="num heat-avg">+9.1</td>
             </tr>
             <tr class="harness-group">
-              <td>GPT-5.5</td>
+              <td><span class="model-cell"><img class="model-icon" src="skillopt-assets/openai.png" alt="OpenAI logo">GPT-5.5</span></td>
               <td>Codex</td>
               <td class="num heat" style="--heat: 11;">+5.5</td>
               <td class="num heat" style="--heat: 100;">+57.5</td>
@@ -1893,7 +1911,7 @@
               <td class="num heat-avg">+21.8</td>
             </tr>
             <tr>
-              <td>GPT-5.5</td>
+              <td><span class="model-cell"><img class="model-icon" src="skillopt-assets/openai.png" alt="OpenAI logo">GPT-5.5</span></td>
               <td>Claude Code</td>
               <td class="num heat" style="--heat: 8;">+4.0</td>
               <td class="num heat" style="--heat: 100;">+58.3</td>
