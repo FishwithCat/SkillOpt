@@ -208,6 +208,23 @@ Re-running the same command auto-resumes from the last completed step.
 
 ---
 
+## Community-contributed configs
+
+These are **not** default SkillOpt settings — they are reference configs
+contributed by users for specific scenarios. The paper-reported numbers
+were obtained with the default settings, not these.
+
+- **`configs/examples/soft_gate.yaml`** *(PR #25, contributed by
+  [@lvbaocheng](https://github.com/lvbaocheng))* — switches the
+  validation gate from exact-match (`hard`) to soft / partial-credit
+  (`soft` or `mixed`). Useful when the held-out **selection split is
+  small** (e.g. ≤ ~10 items) and the **reward is continuous**, where the
+  discrete hard gate often rejects every candidate and training stalls.
+  See the comment at the top of the file for details and when not to use
+  it.
+
+---
+
 ## WebUI
 
 Launch the monitoring dashboard (optional):

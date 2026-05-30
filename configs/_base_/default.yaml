@@ -71,12 +71,6 @@ optimizer:
 
 evaluation:
   use_gate: true
-  # gate_metric: 'hard' (default, backward-compatible),
-  #              'soft' (use soft/F1 score),
-  #              'mixed' ((1 - w) * hard + w * soft).
-  # See skillopt/evaluation/gate.py for details.
-  gate_metric: hard
-  gate_mixed_weight: 0.5
   sel_env_num: 0
   test_env_num: 0
   eval_test: true
