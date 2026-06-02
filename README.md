@@ -6,7 +6,7 @@
 
 ---
 
-## News
+## 🔥 News
 
 | Date | Version | Highlights |
 |---|---|---|
