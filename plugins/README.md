@@ -37,7 +37,7 @@ sleep** idea (short-term experience → long-term competence).
 Requirements: Python ≥ 3.10 and the agent's CLI on PATH. All three call the same
 [`run-sleep.sh`](run-sleep.sh) → `python -m skillopt_sleep`, so behaviour is
 identical everywhere. Default backend is `mock` (no API spend); `--backend
-claude|codex` uses your own budget.
+claude|codex|copilot` uses your own budget.
 
 ---
 
@@ -174,7 +174,7 @@ schedule, if you trust it).
 
 | Flag | Default | Meaning |
 |---|---|---|
-| `--backend mock\|claude\|codex` | `mock` | who runs/optimizes (mock = free) |
+| `--backend mock\|claude\|codex\|copilot` | `mock` | who runs/optimizes (mock = free) |
 | `--preferences "..."` | – | your house rules, as a prior |
 | `--gate on\|off` | `on` | strict held-out gate vs. greedy |
 | `--rollouts-k K` | `1` | multi-rollout contrastive reflection |
