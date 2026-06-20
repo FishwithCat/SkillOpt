@@ -111,8 +111,10 @@ def _cfg_from_args(args, task_meta: Dict[str, Any] | None = None) -> Any:
         overrides["codex_home"] = os.path.abspath(args.codex_home)
     if getattr(args, "source", ""):
         overrides["transcript_source"] = args.source
-    if getattr(args, "lookback_hours", 0):
+    if getattr(args, "lookback_hours", None) is not None and args.lookback_hours != 0:
         overrides["lookback_hours"] = args.lookback_hours
+    elif getattr(args, "lookback_hours", None) == 0:
+        overrides["lookback_hours"] = 0  # explicit opt-out: scan full history
     if getattr(args, "edit_budget", 0):
         overrides["edit_budget"] = args.edit_budget
     if getattr(args, "max_sessions", 0):

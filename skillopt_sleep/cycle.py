@@ -148,7 +148,7 @@ def run_sleep_cycle(
         # scan the entire transcript history and trigger massive LLM mining.
         if since is None:
             lookback_hours = cfg.get("lookback_hours", 72)
-            if lookback_hours and lookback_hours > 0:
+            if lookback_hours is not None and lookback_hours > 0:
                 import time
                 ref_time = clock if clock is not None else time.time()
                 cutoff = ref_time - lookback_hours * 3600
