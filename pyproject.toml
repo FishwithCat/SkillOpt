@@ -58,6 +58,7 @@ all = [
 [project.scripts]
 skillopt-train = "scripts.train:main"
 skillopt-eval = "scripts.eval_only:main"
+skillopt-sleep = "skillopt_sleep.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/microsoft/SkillOpt"
