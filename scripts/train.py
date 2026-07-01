@@ -433,6 +433,7 @@ def load_config(args: argparse.Namespace) -> dict:
                 break
 
     backend = normalize_backend_name(flat.get("model_backend") or flat.get("target_backend") or "azure_openai")
+    explicit_backend = explicit_backend or flat.get("model_backend")
 
     def _has_model_override(dotted_key: str, legacy_key: str) -> bool:
         if getattr(args, legacy_key, None) is not None:
@@ -467,6 +468,8 @@ def load_config(args: argparse.Namespace) -> dict:
             _set_backend_defaults("openai_chat", "minimax_chat")
         elif backend in {"deepseek", "deepseek_chat"}:
             _set_backend_defaults("deepseek_chat", "deepseek_chat")
+            if not _has_model_override("model.reasoning_effort", "reasoning_effort"):
+                flat["reasoning_effort"] = "max"
         else:
             _set_backend_defaults("openai_chat", "openai_chat")
     else:

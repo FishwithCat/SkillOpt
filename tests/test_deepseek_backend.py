@@ -68,7 +68,7 @@ def test_deepseek_backend_uses_openai_compatible_endpoint(monkeypatch: pytest.Mo
         set_target_backend("deepseek_chat")
         set_target_deployment(default_model_for_backend("deepseek_chat"))
 
-        text, usage = chat_target("system", "user", max_completion_tokens=123, retries=1)
+        text, usage = chat_target("system", "user", max_completion_tokens=123, retries=1, reasoning_effort="Max")
         client = azure_openai.get_target_client()
     finally:
         set_target_backend(original_backend)
@@ -77,8 +77,10 @@ def test_deepseek_backend_uses_openai_compatible_endpoint(monkeypatch: pytest.Mo
     assert usage["total_tokens"] == 5
     assert seen["base_url"] == "https://deepseek.test"
     assert seen["api_key"] == "secret"
-    assert client.chat_completions.kwargs["model"] == "deepseek-v4-flash"
+    assert client.chat_completions.kwargs["model"] == "deepseek-v4-pro"
     assert client.chat_completions.kwargs["max_tokens"] == 123
+    assert client.chat_completions.kwargs["reasoning_effort"] == "max"
+    assert client.chat_completions.kwargs["extra_body"] == {"thinking": {"type": "enabled"}}
     assert "max_completion_tokens" not in client.chat_completions.kwargs
     assert normalize_backend_name("deepseek") == "deepseek_chat"
 
@@ -90,6 +92,7 @@ def test_deepseek_config_overrides_base_openai_defaults() -> None:
 
     assert cfg["optimizer_backend"] == "deepseek_chat"
     assert cfg["target_backend"] == "deepseek_chat"
-    assert cfg["optimizer_model"] == "deepseek-v4-flash"
-    assert cfg["target_model"] == "deepseek-v4-flash"
+    assert cfg["optimizer_model"] == "deepseek-v4-pro"
+    assert cfg["target_model"] == "deepseek-v4-pro"
+    assert cfg["reasoning_effort"] == "max"
     assert cfg["deepseek_base_url"] == "https://api.deepseek.com"

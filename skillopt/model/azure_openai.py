@@ -375,6 +375,28 @@ def _chat_token_limit_kwargs(deployment: str, max_completion_tokens: int) -> dic
     return {"max_completion_tokens": max_completion_tokens}
 
 
+def _is_deepseek_deployment(deployment: str) -> bool:
+    return deployment.startswith("deepseek-")
+
+
+def _normalize_deepseek_reasoning_effort(effort: str) -> str:
+    normalized = str(effort).strip().lower()
+    if normalized in {"xhigh", "max"}:
+        return "max"
+    return "high" if normalized in {"low", "medium", "high"} else normalized
+
+
+def _apply_chat_reasoning_kwargs(kwargs: dict[str, Any], deployment: str, effort: str | None, *, tools: bool) -> None:
+    if effort is None:
+        return
+    if _is_deepseek_deployment(deployment):
+        kwargs["reasoning_effort"] = _normalize_deepseek_reasoning_effort(effort)
+        kwargs["extra_body"] = {"thinking": {"type": "enabled"}}
+        return
+    if not tools:
+        kwargs["reasoning_effort"] = effort
+
+
 # ── Core chat function ────────────────────────────────────────────────────────
 
 def _chat_impl(
@@ -432,8 +454,7 @@ def _chat_impl(
                     **_chat_token_limit_kwargs(deployment, max_completion_tokens),
                 )
                 actual_effort = reasoning_effort or REASONING_EFFORT
-                if actual_effort is not None:
-                    kwargs["reasoning_effort"] = actual_effort
+                _apply_chat_reasoning_kwargs(kwargs, deployment, actual_effort, tools=False)
                 if timeout is not None:
                     kwargs["timeout"] = timeout
                 resp = client.chat.completions.create(**kwargs)
@@ -520,9 +541,7 @@ def _chat_messages_impl(
                     kwargs["tools"] = tools
                     if tool_choice is not None:
                         kwargs["tool_choice"] = tool_choice
-                    # Some models (e.g. gpt-5.5) don't support reasoning_effort with function tools
-                elif actual_effort is not None:
-                    kwargs["reasoning_effort"] = actual_effort
+                _apply_chat_reasoning_kwargs(kwargs, deployment, actual_effort, tools=bool(tools))
                 if timeout is not None:
                     kwargs["timeout"] = timeout
                 resp = client.chat.completions.create(**kwargs)
