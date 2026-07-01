@@ -55,6 +55,11 @@ def set_backend(name: str | None) -> str:
         set_optimizer_backend("openai_chat")
         set_target_backend("minimax_chat")
         return "minimax_chat"
+    if normalized in {"deepseek", "deepseek_chat", "deepseek-chat"}:
+        set_optimizer_backend("deepseek_chat")
+        set_target_backend("deepseek_chat")
+        _openai.configure_deepseek_chat()
+        return "deepseek_chat"
     raise ValueError(f"Unsupported legacy backend: {name!r}")
 
 
@@ -74,6 +79,8 @@ def get_backend_name() -> str:
         return "qwen_chat"
     if optimizer == "openai_chat" and target == "minimax_chat":
         return "minimax_chat"
+    if optimizer == "deepseek_chat" and target == "deepseek_chat":
+        return "deepseek_chat"
     return f"{optimizer}+{target}"
 
 
@@ -491,6 +498,25 @@ def configure_minimax_chat(
         timeout_seconds=timeout_seconds,
         max_tokens=max_tokens,
         enable_thinking=enable_thinking,
+    )
+
+
+def configure_deepseek_chat(
+    *,
+    base_url: str | None = None,
+    api_key: str | None = None,
+    optimizer_base_url: str | None = None,
+    optimizer_api_key: str | None = None,
+    target_base_url: str | None = None,
+    target_api_key: str | None = None,
+) -> None:
+    _openai.configure_deepseek_chat(
+        base_url=base_url,
+        api_key=api_key,
+        optimizer_base_url=optimizer_base_url,
+        optimizer_api_key=optimizer_api_key,
+        target_base_url=target_base_url,
+        target_api_key=target_api_key,
     )
 
 

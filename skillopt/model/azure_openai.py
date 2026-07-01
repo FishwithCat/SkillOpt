@@ -105,6 +105,12 @@ OPTIMIZER_DEPLOYMENT = os.environ.get("OPTIMIZER_DEPLOYMENT", "gpt-4o")
 TARGET_DEPLOYMENT = os.environ.get("TARGET_DEPLOYMENT", "gpt-4o")
 
 REASONING_EFFORT: str | None = None
+DEEPSEEK_BASE_URL = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+OPTIMIZER_DEEPSEEK_BASE_URL = os.environ.get("OPTIMIZER_DEEPSEEK_BASE_URL", DEEPSEEK_BASE_URL)
+TARGET_DEEPSEEK_BASE_URL = os.environ.get("TARGET_DEEPSEEK_BASE_URL", DEEPSEEK_BASE_URL)
+OPTIMIZER_DEEPSEEK_API_KEY = os.environ.get("OPTIMIZER_DEEPSEEK_API_KEY", DEEPSEEK_API_KEY)
+TARGET_DEEPSEEK_API_KEY = os.environ.get("TARGET_DEEPSEEK_API_KEY", DEEPSEEK_API_KEY)
 
 _AZ_CLI_TOKEN_CACHE: dict[str, dict[str, Any]] = {}
 
@@ -189,6 +195,18 @@ _target_lock = threading.Lock()
 
 
 def _role_config(role: str) -> dict[str, str]:
+    from skillopt.model.backend_config import get_optimizer_backend, get_target_backend
+
+    backend = get_optimizer_backend() if role == "optimizer" else get_target_backend()
+    if backend == "deepseek_chat":
+        return {
+            "endpoint": OPTIMIZER_DEEPSEEK_BASE_URL if role == "optimizer" else TARGET_DEEPSEEK_BASE_URL,
+            "api_version": _OPENAI_COMPATIBLE_API_VERSION,
+            "api_key": OPTIMIZER_DEEPSEEK_API_KEY if role == "optimizer" else TARGET_DEEPSEEK_API_KEY,
+            "auth_mode": "openai_compatible",
+            "ad_scope": "",
+            "managed_identity_client_id": "",
+        }
     if role == "optimizer":
         return {
             "endpoint": OPTIMIZER_ENDPOINT,
@@ -351,6 +369,12 @@ def _needs_responses_api(deployment: str) -> bool:
     return any(dep == m or dep.startswith(m + "-") for m in _RESPONSES_API_MODELS)
 
 
+def _chat_token_limit_kwargs(deployment: str, max_completion_tokens: int) -> dict[str, int]:
+    if deployment.startswith("deepseek-"):
+        return {"max_tokens": max_completion_tokens}
+    return {"max_completion_tokens": max_completion_tokens}
+
+
 # ── Core chat function ────────────────────────────────────────────────────────
 
 def _chat_impl(
@@ -405,7 +429,7 @@ def _chat_impl(
                         {"role": "system", "content": system},
                         {"role": "user", "content": user},
                     ],
-                    max_completion_tokens=max_completion_tokens,
+                    **_chat_token_limit_kwargs(deployment, max_completion_tokens),
                 )
                 actual_effort = reasoning_effort or REASONING_EFFORT
                 if actual_effort is not None:
@@ -489,7 +513,7 @@ def _chat_messages_impl(
                 kwargs = dict(
                     model=deployment,
                     messages=messages,
-                    max_completion_tokens=max_completion_tokens,
+                    **_chat_token_limit_kwargs(deployment, max_completion_tokens),
                 )
                 actual_effort = reasoning_effort or REASONING_EFFORT
                 if tools:
@@ -723,6 +747,50 @@ def configure_azure_openai(
         "TARGET_AZURE_OPENAI_MANAGED_IDENTITY_CLIENT_ID",
     )
 
+    with _optimizer_lock:
+        _optimizer_client = None
+    with _target_lock:
+        _target_client = None
+
+
+def configure_deepseek_chat(
+    *,
+    base_url: str | None = None,
+    api_key: str | None = None,
+    optimizer_base_url: str | None = None,
+    optimizer_api_key: str | None = None,
+    target_base_url: str | None = None,
+    target_api_key: str | None = None,
+) -> None:
+    global DEEPSEEK_BASE_URL, DEEPSEEK_API_KEY
+    global OPTIMIZER_DEEPSEEK_BASE_URL, OPTIMIZER_DEEPSEEK_API_KEY
+    global TARGET_DEEPSEEK_BASE_URL, TARGET_DEEPSEEK_API_KEY
+    global _optimizer_client, _target_client
+
+    def _clean(value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = str(value).strip()
+        return cleaned or None
+
+    shared_base_url = _clean(base_url)
+    shared_api_key = _clean(api_key)
+    if shared_base_url is not None:
+        DEEPSEEK_BASE_URL = shared_base_url
+        os.environ["DEEPSEEK_BASE_URL"] = DEEPSEEK_BASE_URL
+    if shared_api_key is not None:
+        DEEPSEEK_API_KEY = shared_api_key
+        os.environ["DEEPSEEK_API_KEY"] = DEEPSEEK_API_KEY
+    OPTIMIZER_DEEPSEEK_BASE_URL = _clean(optimizer_base_url) or shared_base_url or OPTIMIZER_DEEPSEEK_BASE_URL
+    TARGET_DEEPSEEK_BASE_URL = _clean(target_base_url) or shared_base_url or TARGET_DEEPSEEK_BASE_URL
+    OPTIMIZER_DEEPSEEK_API_KEY = _clean(optimizer_api_key) or shared_api_key or OPTIMIZER_DEEPSEEK_API_KEY
+    TARGET_DEEPSEEK_API_KEY = _clean(target_api_key) or shared_api_key or TARGET_DEEPSEEK_API_KEY
+    os.environ["OPTIMIZER_DEEPSEEK_BASE_URL"] = OPTIMIZER_DEEPSEEK_BASE_URL
+    os.environ["TARGET_DEEPSEEK_BASE_URL"] = TARGET_DEEPSEEK_BASE_URL
+    if OPTIMIZER_DEEPSEEK_API_KEY:
+        os.environ["OPTIMIZER_DEEPSEEK_API_KEY"] = OPTIMIZER_DEEPSEEK_API_KEY
+    if TARGET_DEEPSEEK_API_KEY:
+        os.environ["TARGET_DEEPSEEK_API_KEY"] = TARGET_DEEPSEEK_API_KEY
     with _optimizer_lock:
         _optimizer_client = None
     with _target_lock:

@@ -28,6 +28,7 @@ from skillopt.model import (
     configure_azure_openai,
     configure_claude_code_exec,
     configure_codex_exec,
+    configure_deepseek_chat,
     configure_qwen_chat,
     configure_minimax_chat,
     set_reasoning_effort,
@@ -139,7 +140,7 @@ def parse_args() -> argparse.Namespace:
     # Legacy flat overrides
     p.add_argument("--env", type=str)
     p.add_argument("--backend", type=str,
-                   choices=["azure_openai", "codex", "codex_exec", "claude", "claude_chat", "claude_code_exec", "minimax", "minimax_chat"])
+                   choices=["azure_openai", "codex", "codex_exec", "claude", "claude_chat", "claude_code_exec", "qwen", "qwen_chat", "minimax", "minimax_chat", "deepseek", "deepseek_chat"])
     p.add_argument("--optimizer_model", type=str)
     p.add_argument("--target_model", type=str)
     p.add_argument("--optimizer_backend", type=str)
@@ -187,6 +188,12 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--minimax_temperature", type=float)
     p.add_argument("--minimax_max_tokens", type=int)
     p.add_argument("--minimax_enable_thinking", type=_BOOL)
+    p.add_argument("--deepseek_base_url", type=str)
+    p.add_argument("--deepseek_api_key", type=str)
+    p.add_argument("--optimizer_deepseek_base_url", type=str)
+    p.add_argument("--optimizer_deepseek_api_key", type=str)
+    p.add_argument("--target_deepseek_base_url", type=str)
+    p.add_argument("--target_deepseek_api_key", type=str)
     p.add_argument("--out_root", type=str)
     p.add_argument("--data_path", type=str)
     p.add_argument("--split_mode", type=str,
@@ -268,6 +275,12 @@ def main() -> None:
                 "minimax_temperature": "model.minimax_temperature",
                 "minimax_max_tokens": "model.minimax_max_tokens",
                 "minimax_enable_thinking": "model.minimax_enable_thinking",
+                "deepseek_base_url": "model.deepseek_base_url",
+                "deepseek_api_key": "model.deepseek_api_key",
+                "optimizer_deepseek_base_url": "model.optimizer_deepseek_base_url",
+                "optimizer_deepseek_api_key": "model.optimizer_deepseek_api_key",
+                "target_deepseek_base_url": "model.target_deepseek_base_url",
+                "target_deepseek_api_key": "model.target_deepseek_api_key",
                 "seed": "train.seed",
                 "test_env_num": "evaluation.test_env_num",
                 "env": "env.name",
@@ -313,24 +326,32 @@ def main() -> None:
                 return True
         return False
 
+    optimizer_backend_overridden = _has_model_override("model.optimizer_backend", "optimizer_backend")
+    target_backend_overridden = _has_model_override("model.target_backend", "target_backend")
+
+    def _set_backend_defaults(optimizer_backend: str, target_backend: str) -> None:
+        if not optimizer_backend_overridden:
+            cfg["optimizer_backend"] = optimizer_backend
+        if not target_backend_overridden:
+            cfg["target_backend"] = target_backend
+
     if explicit_backend is not None:
         backend = normalize_backend_name(explicit_backend)
         cfg["model_backend"] = backend
         if backend in {"claude", "claude_chat"}:
-            cfg.setdefault("optimizer_backend", "claude_chat")
-            cfg.setdefault("target_backend", "claude_chat")
+            _set_backend_defaults("claude_chat", "claude_chat")
         elif backend in {"codex", "codex_exec"}:
-            cfg.setdefault("optimizer_backend", "openai_chat")
-            cfg.setdefault("target_backend", "codex_exec")
+            _set_backend_defaults("openai_chat", "codex_exec")
         elif backend == "claude_code_exec":
-            cfg.setdefault("optimizer_backend", "openai_chat")
-            cfg.setdefault("target_backend", "claude_code_exec")
+            _set_backend_defaults("openai_chat", "claude_code_exec")
+        elif backend in {"qwen", "qwen_chat"}:
+            _set_backend_defaults("openai_chat", "qwen_chat")
         elif backend in {"minimax", "minimax_chat"}:
-            cfg.setdefault("optimizer_backend", "openai_chat")
-            cfg.setdefault("target_backend", "minimax_chat")
+            _set_backend_defaults("openai_chat", "minimax_chat")
+        elif backend in {"deepseek", "deepseek_chat"}:
+            _set_backend_defaults("deepseek_chat", "deepseek_chat")
         else:
-            cfg.setdefault("optimizer_backend", "openai_chat")
-            cfg.setdefault("target_backend", "openai_chat")
+            _set_backend_defaults("openai_chat", "openai_chat")
     else:
         cfg.setdefault("optimizer_backend", "openai_chat")
         cfg.setdefault("target_backend", "openai_chat")
@@ -341,6 +362,18 @@ def main() -> None:
             and not _has_model_override("model.optimizer", "optimizer_model")
         ):
             cfg["optimizer_model"] = default_model_for_backend("claude_chat")
+    if cfg.get("optimizer_backend") == "qwen_chat":
+        if (
+            str(cfg.get("optimizer_model", "") or "").strip() in _OPENAI_DEFAULT_MODEL_SENTINELS
+            and not _has_model_override("model.optimizer", "optimizer_model")
+        ):
+            cfg["optimizer_model"] = default_model_for_backend("qwen_chat")
+    if cfg.get("optimizer_backend") == "deepseek_chat":
+        if (
+            str(cfg.get("optimizer_model", "") or "").strip() in _OPENAI_DEFAULT_MODEL_SENTINELS
+            and not _has_model_override("model.optimizer", "optimizer_model")
+        ):
+            cfg["optimizer_model"] = default_model_for_backend("deepseek_chat")
     if cfg.get("target_backend") == "claude_chat":
         if (
             str(cfg.get("target_model", "") or "").strip() in _OPENAI_DEFAULT_MODEL_SENTINELS
@@ -353,6 +386,12 @@ def main() -> None:
             and not _has_model_override("model.target", "target_model")
         ):
             cfg["target_model"] = default_model_for_backend("claude_chat")
+    if cfg.get("target_backend") == "qwen_chat":
+        if (
+            str(cfg.get("target_model", "") or "").strip() in _OPENAI_DEFAULT_MODEL_SENTINELS
+            and not _has_model_override("model.target", "target_model")
+        ):
+            cfg["target_model"] = default_model_for_backend("qwen_chat")
     if cfg.get("target_backend") == "minimax_chat":
         if (
             str(cfg.get("target_model", "") or "").strip() in _OPENAI_DEFAULT_MODEL_SENTINELS
@@ -362,6 +401,12 @@ def main() -> None:
                 cfg.get("minimax_model")
                 or default_model_for_backend("minimax_chat")
             )
+    if cfg.get("target_backend") == "deepseek_chat":
+        if (
+            str(cfg.get("target_model", "") or "").strip() in _OPENAI_DEFAULT_MODEL_SENTINELS
+            and not _has_model_override("model.target", "target_model")
+        ):
+            cfg["target_model"] = default_model_for_backend("deepseek_chat")
 
     if not cfg.get("out_root"):
         env = cfg.get("env", "unknown")
@@ -447,6 +492,14 @@ def main() -> None:
         temperature=cfg.get("minimax_temperature"),
         max_tokens=cfg.get("minimax_max_tokens"),
         enable_thinking=cfg.get("minimax_enable_thinking"),
+    )
+    configure_deepseek_chat(
+        base_url=cfg.get("deepseek_base_url") or None,
+        api_key=cfg.get("deepseek_api_key") or None,
+        optimizer_base_url=cfg.get("optimizer_deepseek_base_url") or None,
+        optimizer_api_key=cfg.get("optimizer_deepseek_api_key") or None,
+        target_base_url=cfg.get("target_deepseek_base_url") or None,
+        target_api_key=cfg.get("target_deepseek_api_key") or None,
     )
     minimax_model_cfg = cfg.get("minimax_model")
     if minimax_model_cfg and cfg.get("target_backend") == "minimax_chat":

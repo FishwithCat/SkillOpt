@@ -56,6 +56,14 @@ model:
   optimizer_minimax_api_key: ""
   target_minimax_api_key: ""
 
+  # DeepSeek OpenAI-compatible endpoint (deepseek_chat)
+  deepseek_base_url: "https://api.deepseek.com"
+  deepseek_api_key: ""
+  optimizer_deepseek_base_url: ""
+  optimizer_deepseek_api_key: ""
+  target_deepseek_base_url: ""
+  target_deepseek_api_key: ""
+
 train:
   num_epochs: 4
   train_size: 0          # 0 = derive from dataset split when available

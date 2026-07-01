@@ -63,6 +63,7 @@ from skillopt.model import (
     configure_azure_openai,
     configure_claude_code_exec,
     configure_codex_exec,
+    configure_deepseek_chat,
     configure_minimax_chat,
     configure_qwen_chat,
     get_token_summary,
@@ -682,6 +683,9 @@ class ReflACTTrainer:
             elif backend in {"qwen", "qwen_chat"}:
                 optimizer_backend = optimizer_backend or "openai_chat"
                 target_backend = target_backend or "qwen_chat"
+            elif backend in {"deepseek", "deepseek_chat"}:
+                optimizer_backend = optimizer_backend or "deepseek_chat"
+                target_backend = target_backend or "deepseek_chat"
             else:
                 optimizer_backend = optimizer_backend or "openai_chat"
                 target_backend = target_backend or "openai_chat"
@@ -735,6 +739,14 @@ class ReflACTTrainer:
             temperature=cfg.get("minimax_temperature"),
             max_tokens=cfg.get("minimax_max_tokens"),
             enable_thinking=cfg.get("minimax_enable_thinking"),
+        )
+        configure_deepseek_chat(
+            base_url=cfg.get("deepseek_base_url") or None,
+            api_key=cfg.get("deepseek_api_key") or None,
+            optimizer_base_url=cfg.get("optimizer_deepseek_base_url") or None,
+            optimizer_api_key=cfg.get("optimizer_deepseek_api_key") or None,
+            target_base_url=cfg.get("target_deepseek_base_url") or None,
+            target_api_key=cfg.get("target_deepseek_api_key") or None,
         )
         minimax_model_cfg = cfg.get("minimax_model")
         if minimax_model_cfg and cfg.get("target_backend") == "minimax_chat":
